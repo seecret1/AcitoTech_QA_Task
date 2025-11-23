@@ -219,5 +219,3 @@ curl -X GET "https://qa-internship.avito.com/api/1/item/test"</code></pre>
 <pre><code>mvn allure:report</code></pre>
 <p>Генерирует статический HTML отчет в target/site/allure-maven-plugin</p>
 </div>
-
-<p>Инструкция по тестированию API микросервиса Avito &copy; 2024</p>
