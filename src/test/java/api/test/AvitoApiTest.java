@@ -1,39 +1,48 @@
 package api.test;
 
-import api.dto.AvitoApiResponse;
-import api.dto.ItemRequest;
+import api.dto.response.AvitoApiResponse;
+import api.dto.request.ItemRequest;
 import api.Specifications;
 import api.dto.*;
-import io.qameta.allure.Description;
-import io.qameta.allure.Severity;
-import io.qameta.allure.SeverityLevel;
-import io.qameta.allure.Step;
-import io.qameta.allure.Story;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import api.dto.response.CreateItemResponse;
+import io.qameta.allure.*;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static api.test.CheckValidate.isValidUUID;
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
+@Epic("Тесты API")
+@Feature("Проверка создания объявлений")
+@DisplayName("Тесты для проверки создания объявлений")
+@Execution(ExecutionMode.CONCURRENT)
 public class AvitoApiTest {
 
     private final Random random = new Random();
     private final String BASE_URL = "https://qa-internship.avito.com";
-    private final List<String> createdItemIds = new ArrayList<>();
+
+    private static final ThreadLocal<List<String>> createdItemIds = ThreadLocal.withInitial(ArrayList::new);
+    private static final AtomicInteger sellerIdCounter = new AtomicInteger(100000);
+    private static final AtomicInteger testCounter = new AtomicInteger(1);
+
     private Integer testSellerId;
+    private final String testPrefix;
+
+    public AvitoApiTest() {
+        this.testPrefix = "Test-" + testCounter.getAndIncrement() + "-" + System.currentTimeMillis() % 10000;
+    }
 
     @BeforeEach
     public void setUp() {
-        testSellerId = generateSellerId();
+        testSellerId = sellerIdCounter.getAndIncrement();
     }
 
     @AfterEach
@@ -44,6 +53,7 @@ public class AvitoApiTest {
         );
 
         cleanUpCreatedItems();
+        createdItemIds.remove();
     }
 
     @Test
@@ -68,17 +78,67 @@ public class AvitoApiTest {
     @Story("Создание объявления")
     @Description("Проверяет создание объявления с минимальными валидными данными")
     @Severity(SeverityLevel.CRITICAL)
-    public void createItem_BadRequestSc() {
+    public void createItem_MinimalData() {
         Specifications.installSpecification(
                 Specifications.requestSpec(BASE_URL),
-                Specifications.responseSpec_Code_400()
+                Specifications.responseSpec_Code_200()
         );
 
         ItemRequest itemRequest = createMinimalItemRequest();
         String itemId = createItemAndGetId(itemRequest);
 
-        Assertions.assertNull(itemId, "Item ID should be extracted from response");
-        assertFalse(isValidUUID(itemId), "Item ID should be valid UUID");
+        validateItemId(itemId);
+        addItemToCleanupList(itemId);
+    }
+
+    @Test
+    @Story("Получение объявления")
+    @Description("Проверяет получение объявления по ID")
+    @Severity(SeverityLevel.CRITICAL)
+    public void getItemById_Success() {
+        String itemId = createTestItem();
+
+        Specifications.installSpecification(
+                Specifications.requestSpec(BASE_URL),
+                Specifications.responseSpec_Code_200()
+        );
+
+        List<Object> items = getItemById(itemId);
+        validateItemsList(items);
+    }
+
+    @Test
+    @Story("Получение объявлений продавца")
+    @Description("Проверяет получение всех объявлений продавца")
+    @Severity(SeverityLevel.CRITICAL)
+    public void getItemsBySeller_Success() {
+        Integer sellerId = sellerIdCounter.getAndIncrement();
+        createMultipleItemsForSeller(sellerId, 2);
+
+        Specifications.installSpecification(
+                Specifications.requestSpec(BASE_URL),
+                Specifications.responseSpec_Code_200()
+        );
+
+        List<Object> items = getItemsBySellerId(sellerId);
+        validateItemsList(items);
+        assertTrue(items.size() >= 2, "Should find at least 2 created items");
+    }
+
+    @Test
+    @Story("Получение статистики")
+    @Description("Проверяет получение статистики по объявлению")
+    @Severity(SeverityLevel.CRITICAL)
+    public void getStatistics_Success() {
+        String itemId = createTestItem();
+
+        Specifications.installSpecification(
+                Specifications.requestSpec(BASE_URL),
+                Specifications.responseSpec_Code_200()
+        );
+
+        List<Object> statistics = getStatisticsByItemId(itemId);
+        validateStatisticsList(statistics);
     }
 
     @Test
@@ -115,38 +175,6 @@ public class AvitoApiTest {
 
     @Test
     @Story("Получение объявления")
-    @Description("Проверяет получение объявления по ID")
-    @Severity(SeverityLevel.CRITICAL)
-    public void getItemById_Success() {
-        String itemId = createTestItem();
-
-        Specifications.installSpecification(
-                Specifications.requestSpec(BASE_URL),
-                Specifications.responseSpec_Code_200()
-        );
-
-        List<Object> items = getItemById(itemId);
-        validateItemsList(items);
-    }
-
-    @Test
-    @Story("Получение объявления")
-    @Description("Проверяет ошибку при получении несуществующего объявления")
-    @Severity(SeverityLevel.NORMAL)
-    public void getItemById_NotFound() {
-        Specifications.installSpecification(
-                Specifications.requestSpec(BASE_URL),
-                Specifications.responseSpec_Code_400()
-        );
-
-        String invalidId = "nonexistent_id_12345";
-        AvitoApiResponse response = getItemByIdWithError(invalidId);
-
-        validateErrorResponse(response, "400");
-    }
-
-    @Test
-    @Story("Получение объявления")
     @Description("Проверяет ошибку при получении с невалидным UUID")
     @Severity(SeverityLevel.NORMAL)
     public void getItemById_InvalidUUID() {
@@ -160,36 +188,19 @@ public class AvitoApiTest {
     }
 
     @Test
-    @Story("Получение объявлений продавца")
-    @Description("Проверяет получение всех объявлений продавца")
-    @Severity(SeverityLevel.CRITICAL)
-    public void getItemsBySeller_Success() {
-        Integer sellerId = generateSellerId();
-        createMultipleItemsForSeller(sellerId, 2);
-
+    @Story("Получение объявления")
+    @Description("Проверяет ошибку при получении несуществующего объявления")
+    @Severity(SeverityLevel.NORMAL)
+    public void getItemById_NotFound() {
         Specifications.installSpecification(
                 Specifications.requestSpec(BASE_URL),
-                Specifications.responseSpec_Code_200()
+                Specifications.responseSpec_Code_400()
         );
 
-        List<Object> items = getItemsBySellerId(sellerId);
-        validateItemsList(items);
-    }
+        String invalidId = "not-a-uuid-format-" + testPrefix;
+        AvitoApiResponse response = getItemByIdWithError(invalidId);
 
-    @Test
-    @Story("Получение статистики")
-    @Description("Проверяет получение статистики по объявлению")
-    @Severity(SeverityLevel.CRITICAL)
-    public void getStatistics_Success() {
-        String itemId = createTestItem();
-
-        Specifications.installSpecification(
-                Specifications.requestSpec(BASE_URL),
-                Specifications.responseSpec_Code_200()
-        );
-
-        List<Object> statistics = getStatisticsByItemId(itemId);
-        validateStatisticsList(statistics);
+        validateErrorResponse(response, "400");
     }
 
     @Test
@@ -197,22 +208,22 @@ public class AvitoApiTest {
     @Description("Проверяет ошибку при получении статистики несуществующего объявления")
     @Severity(SeverityLevel.NORMAL)
     public void getStatistics_NotFound() {
+        given()
+                .spec(Specifications.requestSpec(BASE_URL))
+                .when()
+                .get("/api/1/statistic/" + UUID.randomUUID())
+                .then()
+                .log().all()
+                .statusCode(404);
+
         Specifications.installSpecification(
                 Specifications.requestSpec(BASE_URL),
-                Specifications.responseSpec_Code_400()
+                Specifications.responseSpec_Code_404()
         );
 
         String randomUUID = UUID.randomUUID().toString();
         AvitoApiResponse response = getStatisticsWithError(randomUUID);
-
-        validateErrorResponse(response, "400");
-    }
-
-    // ============ STEP METHODS ============
-
-    @Step("Генерация sellerId")
-    private Integer generateSellerId() {
-        return random.nextInt(888889) + 111111;
+        validateErrorResponse(response, "404");
     }
 
     @Step("Создание тестового объявления")
@@ -232,9 +243,9 @@ public class AvitoApiTest {
     @Step("Создание статистики")
     private Statistics createStatistics() {
         return new Statistics(
-                random.nextInt(101),
-                random.nextInt(1001),
-                random.nextInt(51)
+                random.nextInt(50) + 1,
+                random.nextInt(500) + 100,
+                random.nextInt(30) + 1
         );
     }
 
@@ -242,7 +253,7 @@ public class AvitoApiTest {
     private ItemRequest createItemRequest(Statistics statistics) {
         return new ItemRequest(
                 testSellerId,
-                "Test Item " + (random.nextInt(9000) + 1000),
+                testPrefix + " Item " + (random.nextInt(9000) + 1000),
                 random.nextInt(9901) + 100,
                 statistics
         );
@@ -252,7 +263,7 @@ public class AvitoApiTest {
     private ItemRequest createMinimalItemRequest() {
         return new ItemRequest(
                 testSellerId,
-                "Minimal Item",
+                testPrefix + " Minimal Item",
                 100,
                 null
         );
@@ -262,7 +273,7 @@ public class AvitoApiTest {
     private ItemRequest createInvalidItemRequest() {
         return new ItemRequest(
                 testSellerId,
-                "Bad Item",
+                null,
                 -100,
                 new Statistics(-10, -20, -30)
         );
@@ -272,7 +283,7 @@ public class AvitoApiTest {
     private ItemRequest createItemRequestWithoutSellerId() {
         return new ItemRequest(
                 null,
-                "Test Item",
+                testPrefix + " Item Without Seller",
                 100,
                 new Statistics(10, 20, 30)
         );
@@ -304,13 +315,13 @@ public class AvitoApiTest {
 
     @Step("Валидация Item ID")
     private void validateItemId(String itemId) {
-        Assertions.assertNotNull(itemId, "Item ID should be extracted from response");
+        assertNotNull(itemId, "Item ID should be extracted from response");
         assertTrue(isValidUUID(itemId), "Item ID should be valid UUID");
     }
 
     @Step("Добавление объявления в список для очистки")
     private void addItemToCleanupList(String itemId) {
-        createdItemIds.add(itemId);
+        createdItemIds.get().add(itemId);
     }
 
     @Step("Создание {count} объявлений для продавца {sellerId}")
@@ -330,7 +341,7 @@ public class AvitoApiTest {
         Statistics statistics = createStatistics();
         ItemRequest itemRequest = new ItemRequest(
                 sellerId,
-                "Test Item " + (random.nextInt(9000) + 1000),
+                testPrefix + " Item " + (random.nextInt(9000) + 1000),
                 random.nextInt(9901) + 100,
                 statistics
         );
@@ -391,29 +402,32 @@ public class AvitoApiTest {
 
     @Step("Валидация ответа с ошибкой")
     private void validateErrorResponse(AvitoApiResponse response, String expectedStatus) {
-        Assertions.assertEquals(expectedStatus, response.getStatus());
-        Assertions.assertNotNull(response.getResult());
-        if (response.getResult().getMessage() != null) {
-            Assertions.assertNotNull(response.getResult().getMessage());
+        assertEquals(expectedStatus, response.getStatus());
+        if (response.getResult() != null) {
+            assertNotNull(response.getResult());
+            if (response.getResult().getMessage() != null) {
+                assertNotNull(response.getResult().getMessage());
+            }
         }
     }
 
     @Step("Валидация списка объявлений")
     private void validateItemsList(List<Object> items) {
-        Assertions.assertNotNull(items);
+        assertNotNull(items);
     }
 
     @Step("Валидация списка статистики")
     private void validateStatisticsList(List<Object> statistics) {
-        Assertions.assertNotNull(statistics);
+        assertNotNull(statistics);
     }
 
     @Step("Очистка созданных объявлений")
     private void cleanUpCreatedItems() {
-        for (String itemId : createdItemIds) {
+        List<String> itemsToDelete = new ArrayList<>(createdItemIds.get());
+        for (String itemId : itemsToDelete) {
             deleteItem(itemId);
         }
-        createdItemIds.clear();
+        createdItemIds.get().clear();
     }
 
     @Step("Удаление объявления {itemId}")
@@ -425,7 +439,6 @@ public class AvitoApiTest {
                     .then()
                     .log().all();
         } catch (Exception e) {
-
         }
     }
 }

@@ -1,5 +1,6 @@
-package api.dto;
+package api.dto.request;
 
+import api.dto.Statistics;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
