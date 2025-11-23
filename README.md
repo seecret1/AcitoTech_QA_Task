@@ -26,13 +26,6 @@
     <p><strong>Причина high приоритета:</strong> Дублирование информации снижает удобство навигации и может привести к ошибкам при фильтрации.</p>
 </div>
 
-<div class="bug-title">3. Несоответствие статуса вакансии</div>
-<div class="priority priority-medium-label">Medium Priority</div>
-<div class="explanation">
-    <p><strong>Описание:</strong> В таблице указано: "Вакансия пока нет", хотя должно быть "Вакансии пока нет" или "Нет вакансий".</p>
-    <p><strong>Причина medium приоритета:</strong> Ошибка в тексте влияет на восприятие, но не ломает функционал.</p>
-</div>
-
 <div class="bug-title">4. Некорректное отображение локаций</div>
 <div class="priority priority-medium-label">Medium Priority</div>
 <div class="explanation">
