@@ -87,6 +87,31 @@ mvn -version</code></pre>
 <pre><code>mvn test -Dtest=AvitoApiTest#createItem_Success</code></pre>
 </div>
 
+<h2>🚀 CI/CD Pipeline</h2>
+
+<h4>GitHub Actions</h4>
+<p>Проект настроен с автоматическим CI/CD пайплайном через GitHub Actions:</p>
+<code># Файл: .github/workflows/ci-cd.yml</code>
+
+<h4>🤖 Автоматизация</h4>
+<p>Тесты запускаются автоматически при каждом пуше в main/develop ветки</p>
+<h4>📊 Отчеты</h4>
+<p>Генерация Allure отчетов и артефактов для анализа</p>
+<h4>⚡ Параллелизм</h4>
+<p>Запуск тестов в 8 потоков для ускорения выполнения</p>
+<h4>🔒 Качество кода</h4>
+<p>Проверка покрытия кода с JaCoCo и security scanning</p>
+
+<h4>Локальный запуск CI-сценария</h4>
+<pre><code># Запуск с CI профилем
+mvn clean test -Pci
+
+# Или через скрипт
+./scripts/run-ci-tests.sh</code></pre>
+            <h4>Dockerfile</h4>
+            <p>Проект включает Dockerfile для контейнеризации тестов</p>
+
+            
 <h2>🔹 Конфигурация</h2>
 <p>Основные настройки в <code>pom.xml</code>:</p>
 <table>
