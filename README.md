@@ -54,13 +54,6 @@
     <p><strong>Причина low приоритета:</strong> Ошибка не критична, но бросает тень на профессиональный уровень сайта.</p>
 </div>
 
-<div class="bug-title">7. Некорректный адрес офиса в Санкт-Петербурге</div>
-<div class="priority priority-low-label">Low Priority</div>
-<div class="explanation">
-    <p><strong>Описание:</strong> Указан адрес: "Малокотинский пр-кт, 64, лит В". Вероятно, имелся в виду "Малоконюшенный переулок" или другой реальный адрес.</p>
-    <p><strong>Причина low приоритета:</strong> Ошибка в адресе может вызвать недоверие, но не влияет на основной функционал.</p>
-</div>
-
 <div class="bug-title">8. Несогласованность в написании условий работы</div>
 <div class="priority priority-low-label">Low Priority</div>
 <div class="explanation">
