@@ -1,7 +1,7 @@
 package api.test;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class CheckValidate {
 
