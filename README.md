@@ -12,13 +12,6 @@
 
 <h2>Детализация багов</h2>
 
-<div class="bug-title">1. Некорректные символы "X" в фильтрах</div>
-<div class="priority priority-high-label">High Priority</div>
-<div class="explanation">
-    <p><strong>Описание:</strong> В строке фильтров (Data Science, Санкт-Петербург, Команда и т.д.) присутствуют лишние символы "X", которые не несут смысловой нагрузки.</p>
-    <p><strong>Причина high приоритета:</strong> Это критическая ошибка интерфейса, которая нарушает usability и выглядит непрофессионально.</p>
-</div>
-
 <div class="bug-title">2. Дублирование категории "Data Science"</div>
 <div class="priority priority-high-label">High Priority</div>
 <div class="explanation">
@@ -26,39 +19,11 @@
     <p><strong>Причина high приоритета:</strong> Дублирование информации снижает удобство навигации и может привести к ошибкам при фильтрации.</p>
 </div>
 
-<div class="bug-title">3. Несоответствие статуса вакансии</div>
-<div class="priority priority-medium-label">Medium Priority</div>
-<div class="explanation">
-    <p><strong>Описание:</strong> В таблице указано: "Вакансия пока нет", хотя должно быть "Вакансии пока нет" или "Нет вакансий".</p>
-    <p><strong>Причина medium приоритета:</strong> Ошибка в тексте влияет на восприятие, но не ломает функционал.</p>
-</div>
-
-<div class="bug-title">4. Некорректное отображение локаций</div>
-<div class="priority priority-medium-label">Medium Priority</div>
-<div class="explanation">
-    <p><strong>Описание:</strong> Например, в вакансии "Финансовый аналитик" указано: "Москва офис", хотя должно быть "Москва, офис" или "Офис (Москва)".</p>
-    <p><strong>Причина medium приоритета:</strong> Несогласованность формата может затруднить понимание условий работы.</p>
-</div>
-
 <div class="bug-title">5. Некорректный заголовок "Ничего не нашлось"</div>
 <div class="priority priority-medium-label">Medium Priority</div>
 <div class="explanation">
     <p><strong>Описание:</strong> Заголовок "Ничего не нашлось" отображается, хотя на странице есть вакансии.</p>
     <p><strong>Причина medium приоритета:</strong> Это вводит пользователя в заблуждение и может заставить его prematurely прекратить поиск.</p>
-</div>
-
-<div class="bug-title">6. Опечатка в названии компании/направления</div>
-<div class="priority priority-low-label">Low Priority</div>
-<div class="explanation">
-    <p><strong>Описание:</strong> В вакансии "Аналитик данных в бизнес-команду Авuro" слово "Авuro" содержит опечатку (должно быть "Avito").</p>
-    <p><strong>Причина low приоритета:</strong> Ошибка не критична, но бросает тень на профессиональный уровень сайта.</p>
-</div>
-
-<div class="bug-title">7. Некорректный адрес офиса в Санкт-Петербурге</div>
-<div class="priority priority-low-label">Low Priority</div>
-<div class="explanation">
-    <p><strong>Описание:</strong> Указан адрес: "Малокотинский пр-кт, 64, лит В". Вероятно, имелся в виду "Малоконюшенный переулок" или другой реальный адрес.</p>
-    <p><strong>Причина low приоритета:</strong> Ошибка в адресе может вызвать недоверие, но не влияет на основной функционал.</p>
 </div>
 
 <div class="bug-title">8. Несогласованность в написании условий работы</div>
